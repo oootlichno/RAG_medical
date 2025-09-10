@@ -1,0 +1,31 @@
+cat > .gitignore <<'EOF'
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# Envs & local config
+.env
+.env.*
+.venv*/
+venv*/
+
+# Local data / artifacts
+models/
+*.gguf
+*.safetensors
+*.bin
+*.pt
+
+# Vector DBs / caches
+chroma_db_v*/
+chroma_db_v_export*/
+.cache/
+datasets/
+huggingface/
+*.log
+EOF

@@ -1,0 +1,10 @@
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+langchain==0.1.1
+langchain-community==0.0.13
+chromadb==0.4.22
+pymupdf==1.25.1
+sentence-transformers==2.2.2
+tiktoken==0.6.0
+huggingface_hub==0.23.2
+llama-cpp-python==0.1.85

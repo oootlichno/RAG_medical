@@ -1,0 +1,13 @@
+{
+  "repo_id": "TheBloke/Mistral-7B-Instruct-v0.2-GGUF",
+  "model_file": "mistral-7b-instruct-v0.2.Q6_K.gguf",
+  "embedding_model": "all-MiniLM-L6-v2",
+  "chunk_size": 768,
+  "chunk_overlap": 40,
+  "retriever_k": 5,
+  "llama_params": {
+    "n_ctx": 4096,
+    "n_gpu_layers": -1,
+    "n_batch": 512
+  }
+}
