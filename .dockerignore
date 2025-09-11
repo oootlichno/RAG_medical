@@ -1,0 +1,9 @@
+.vscode
+.venv*
+__pycache__/
+*.pyc
+.env
+models/
+chroma_db_v*/
+*.tar.gz
+.DS_Store

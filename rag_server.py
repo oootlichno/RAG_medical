@@ -6,17 +6,23 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 from llama_cpp import Llama
 
-DB_DIR = os.getenv("CHROMA_DIR", "./chroma_db_v_export")
-COLL = os.getenv("CHROMA_COLL", "langchain")
-MODEL_PATH = os.getenv("MODEL_PATH", "/Users/oootlichno/Library/Mobile Documents/com~apple~CloudDocs/Projects/Личная/Projects/RAG_medical/models/mistral-7b-instruct-v0.2.Q6_K.gguf")
+""" DB_DIR = os.getenv("CHROMA_DIR", "/data/chroma_db_v_export")
+COLL = os.getenv("CHROMA_COLLECTION", "langchain")
+MODEL_PATH = os.getenv("MODEL_PATH", "/models/model.gguf")
+ """
+DB_DIR     = os.getenv("CHROMA_DIR", "/opt/data/chroma_db_v_export")
+COLL       = os.getenv("CHROMA_COLL", "langchain")
+MODEL_PATH = os.getenv("MODEL_PATH", "/opt/data/models/model.gguf")
+API_KEY = os.getenv("RAG_API_KEY", "")
 
-# Load once at startup
-client = chromadb.PersistentClient(DB_DIR)
-col = client.get_collection(COLL)
+client   = chromadb.PersistentClient(DB_DIR)
+col      = client.get_collection(COLL)
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
-llm = Llama(model_path=MODEL_PATH, n_gpu_layers=-1, n_ctx=8192, verbose=False)
+llm      = Llama(model_path=MODEL_PATH, n_gpu_layers=-1, n_ctx=4960, verbose=False)
 
-app = FastAPI(title="Medical RAG API", version="1.0")
+from fastapi import Header, HTTPException
+
+app = FastAPI()
 
 class Query(BaseModel):
     question: str
@@ -28,25 +34,21 @@ class Answer(BaseModel):
     answer: str
     sources: List[Dict]
 
-@app.get("/")
-def root():
-    return {"ok": True, "endpoints": ["/health", "/rag"]}
-
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
 @app.post("/rag", response_model=Answer)
-def rag(q: Query):
+def rag(q: Query, x_api_key: str | None = Header(default=None)):
+    if API_KEY and x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
     q_vec = embedder.encode(q.question).tolist()
     hits = col.query(
         query_embeddings=[q_vec],
         n_results=q.k,
-        include=["documents", "distances", "metadatas"]  # ← no "ids" here
+        include=["documents", "distances", "metadatas"]  # no "ids"
     )
-    if not hits["documents"] or not hits["documents"][0]:
-        return {"answer": "I don't know.", "sources": []}
-
     docs = hits["documents"][0]
     context = "\n\n".join(docs)
 
@@ -58,17 +60,20 @@ def rag(q: Query):
 
     out = llm.create_chat_completion(
         messages=[
-            {"role": "system", "content": "You are concise and cautious."},
-            {"role": "user", "content": prompt}
+            {"role":"system","content":"You are concise and cautious."},
+            {"role":"user","content":prompt}
         ],
         temperature=q.temperature,
         max_tokens=q.max_tokens
     )
     answer = out["choices"][0]["message"]["content"]
 
-    # IDs are returned by default even if not requested in include
     sources = []
-    for _id, doc, dist in zip(hits["ids"][0], hits["documents"][0], hits["distances"][0]):
-        sources.append({"id": _id, "distance": float(dist), "snippet": doc[:300]})
+    for meta, doc, dist in zip(hits["metadatas"][0], hits["documents"][0], hits["distances"][0]):
+        sources.append({
+            "distance": float(dist),
+            "title": meta.get("source") if isinstance(meta, dict) else None,
+            "snippet": doc[:300]
+        })
 
     return {"answer": answer, "sources": sources}
