@@ -29,3 +29,4 @@ datasets/
 huggingface/
 *.log
 EOF
+/chroma_db_v_export.tar.gz
