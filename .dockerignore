@@ -8,4 +8,10 @@ __pycache__/
 *.safetensors
 models/
 chroma_db_v*/
-chroma_db_v_export*/
+chroma_db_v_export/
+
+
+
+# editor cruft
+.vscode
+.env

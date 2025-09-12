@@ -10,9 +10,9 @@ from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
 
 try:
-    from llama_cpp import Llama  # wheels layout 1
+    from llama_cpp import Llama 
 except Exception:
-    from llama_cpp.llama import Llama  # wheels layout 2
+    from llama_cpp.llama import Llama 
 
 from starlette.middleware.cors import CORSMiddleware
 import numpy as np
@@ -35,7 +35,7 @@ N_BATCH = int(os.getenv("LLAMA_N_BATCH", "128"))
 
 CORS_ALLOW_ORIGINS = [o.strip() for o in os.getenv("CORS_ALLOW_ORIGINS", "*").split(",")]
 
-# controls startup forced index rebuild (now nukes nested /index dirs)
+# controls startup forced index rebuild 
 CHROMA_FORCE_REINDEX = os.getenv("CHROMA_FORCE_REINDEX", "0") == "1"
 # silence noisy telemetry
 os.environ.setdefault("CHROMA_TELEMETRY_ENABLED", "false")
@@ -67,9 +67,7 @@ def _safe_reindex() -> bool:
 
 
 def _init_client_and_collection():
-    # Use PersistentClient consistently (don't mix with HttpClient)
     client = chromadb.PersistentClient(path=DB_DIR, settings=Settings(anonymized_telemetry=False))
-    # Fail fast if the collection name is wrong (avoid silently creating an empty one)
     col = client.get_collection(name=COLL)
     return client, col
 
@@ -193,7 +191,6 @@ def debug_count():
 
 @app.get("/debug/peek")
 def debug_peek():
-    # Use .get() with documents+metadatas only (never embeddings) to avoid vector segment init
     try:
         got = col.get(limit=3, include=["documents", "metadatas"])
         docs = []
@@ -224,10 +221,7 @@ def debug_reindex(x_api_key: Optional[str] = Header(default=None)):
 
 
 def _bruteforce_knn(question_vec, k: int):
-    """
-    Brute-force cosine KNN that *never* accesses Chroma's vector segment.
-    We only read documents+metadatas, then re-embed docs batch-by-batch locally.
-    """
+ 
     q = np.asarray(question_vec, dtype=np.float32)
     qn = q / (np.linalg.norm(q) + 1e-12)
 
@@ -274,7 +268,7 @@ def _bruteforce_knn(question_vec, k: int):
     ids_out = [b[1] for b in top]
     metas_out = [b[2] for b in top]
     docs_out = [b[3] for b in top]
-    dists_out = [float(1.0 - (-b[0])) for b in top]  # 1 - cosine
+    dists_out = [float(1.0 - (-b[0])) for b in top] 
 
     # Mark that we used doc re-embedding (handy for debugging)
     for i, m in enumerate(metas_out):
@@ -324,7 +318,7 @@ def _query_auto(q_vec, k: int, include=None):
 def debug_test_retrieval(q: str = "What is appendicitis?", k: int = 4, mode: Optional[str] = None):
     """
     Quick check endpoint:
-      - mode can override env (auto|bruteforce|chroma) for this call only
+      - mode can override env (auto|bruteforce|chroma) 
     """
     question = (q or "").strip()
     if not question:
