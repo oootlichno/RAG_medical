@@ -3,7 +3,9 @@
 __pycache__/
 *.pyc
 .env
+*.tar.gz
+*.gguf
+*.safetensors
 models/
 chroma_db_v*/
-*.tar.gz
-.DS_Store
+chroma_db_v_export*/

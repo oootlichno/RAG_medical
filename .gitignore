@@ -21,6 +21,9 @@ models/
 *.bin
 *.pt
 
+# artifacts
+/chroma_db_v_export.tar.gz
+
 # Vector DBs / caches
 chroma_db_v*/
 chroma_db_v_export*/
